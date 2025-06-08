@@ -30,8 +30,13 @@ export class IngestionController {
 
   @Patch(':id/complete')
   @Roles(UserRole.Admin) 
-  completeIngestion(@Param('id') ingestionId: string): { message: string } {
-    this.ingestionService.completeIngestion(ingestionId);
-    return { message: `Ingestion process ${ingestionId} marked as complete` };
+  completeIngestion(@Param('id') ingestionId: string): Promise<void> {
+    return this.ingestionService.completeIngestion(ingestionId);
+  }
+
+  @Patch(':id/fail')
+  @Roles(UserRole.Admin) 
+  failIngestion(@Param('id') ingestionId: string): Promise<void> {
+    return this.ingestionService.failIngestion(ingestionId);
   }
 }

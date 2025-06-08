@@ -46,9 +46,10 @@ export class IngestionService {
     ingestion.completedAt = new Date();
 
     await this.ingestionRepository.save(ingestion);
+  
   }
 
-  async failIngestion(ingestionId: string, errorMessage: string): Promise<void> {
+  async failIngestion(ingestionId: string): Promise<void> {
     const ingestion = await this.ingestionRepository.findOne({
       where: { id: ingestionId },
     });
@@ -58,7 +59,7 @@ export class IngestionService {
     }
 
     ingestion.status = IngestionStatus.FAILED;
-    ingestion.errorMessage = errorMessage;
+    ingestion.errorMessage = 'An error occurred during ingestion';
 
     await this.ingestionRepository.save(ingestion);
   }

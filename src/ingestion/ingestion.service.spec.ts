@@ -98,7 +98,7 @@ describe('IngestionService', () => {
     mockRepository.findOne.mockResolvedValue(mockIngestion);
     mockRepository.save.mockResolvedValue(undefined);
 
-    await service.failIngestion(ingestionId, errorMessage);
+    await service.failIngestion(ingestionId);
 
     expect(repo.findOne).toHaveBeenCalledWith({ where: { id: ingestionId } });
     expect(repo.save).toHaveBeenCalledWith({
