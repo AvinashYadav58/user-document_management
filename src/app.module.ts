@@ -10,20 +10,31 @@ import { APP_GUARD } from '@nestjs/core';
 import { RolesGuard } from './auth/roles.gaurd';
 import { JwtAuthGuard } from './auth/jwtauth.gaurd';
 import { Ingestion } from './ingestion/ingestion.entity';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import { configValidationSchema } from './config.schema';
 
 @Module({
-  imports: [TypeOrmModule.forRoot({
-    type: 'postgres',
-    host: 'localhost',
-    port: 5432,
-    username: 'postgres',
-    password: 'postgres',
-    database: 'user-document-management',
-    entities: [Document, User, Ingestion],
-    autoLoadEntities: true,
-    synchronize: true
-
-  }), AuthModule, UsersModule, DocumentsModule, IngestionModule],
+  imports: [
+    ConfigModule.forRoot({ 
+      envFilePath: [`.env.stage.${process.env.STAGE}`], 
+      validationSchema: configValidationSchema,
+    }),
+    TypeOrmModule.forRootAsync({
+      imports: [ConfigModule],
+       inject: [ConfigService],
+      useFactory: async (configService: ConfigService) => {
+        return {  
+        type: 'postgres',
+        autoLoadEntities: true,
+        synchronize: true,
+        host: configService.get<string>('DB_HOST'),
+        port: configService.get<number>('DB_PORT'),
+        username: configService.get<string>('DB_USERNAME'),
+        password: configService.get<string>('DB_PASSWORD'),
+        database: configService.get<string>('DB_DATABASE'),
+        entities: [Document, User, Ingestion],
+      }},
+    }),AuthModule, UsersModule, DocumentsModule, IngestionModule],
   controllers: [],
   providers: [
     {

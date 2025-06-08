@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User, UserRole } from '../auth/user.entity';
@@ -25,6 +25,19 @@ export class UsersService {
     return this.userRepository.find();
   }
 
+//   async updateUserRole(id: string, updateUserRoleDto: UpdateUserRoleDto): Promise<User> {
+//     const user = await this.userRepository.findOne({ where: { id } });
+
+//     if (!user) {
+//       throw new NotFoundException(`User with ID "${id}" not found.`);
+//     }
+
+//     user.role = updateUserRoleDto.role; 
+//     await this.userRepository.save(user);
+
+//     return user;
+//   }
+
   async updateUserRole(id: string, updateUserRoleDto: UpdateUserRoleDto): Promise<User> {
     const user = await this.userRepository.findOne({ where: { id } });
 
@@ -32,7 +45,11 @@ export class UsersService {
       throw new NotFoundException(`User with ID "${id}" not found.`);
     }
 
-    user.role = updateUserRoleDto.role; 
+    if (!Object.values(UserRole).includes(updateUserRoleDto.role)) {
+      throw new BadRequestException('Invalid role provided.');
+    }
+
+    user.role = updateUserRoleDto.role;
     await this.userRepository.save(user);
 
     return user;

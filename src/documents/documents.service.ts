@@ -6,6 +6,7 @@ import { DocumentRepository } from './document.repository';
 import { DataSource} from 'typeorm'
 import { Document } from './document.entity';
 import { GetDocumentsFilterDto } from './dto/get-documents-filter.dto';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class DocumentsService {
@@ -14,12 +15,18 @@ export class DocumentsService {
 
   private readonly documentRepository: DocumentRepository;
 
-  constructor(private readonly dataSource: DataSource) {
+  constructor(
+    private readonly dataSource: DataSource,
+    private readonly configService: ConfigService
+  ) {
+    
     this.documentRepository = new DocumentRepository(dataSource);
     this.s3 = new S3({
-     
+      accessKeyId: configService.get<string>('AWS_ACCESS_KEY_ID'),
+      secretAccessKey: configService.get<string>('AWS_SECRET'),
+      region: configService.get<string>('AWS_REGION'),
     });
-    this.bucketName = 'cricket-arabia';
+    this.bucketName = configService.get<string>('AWS_BUCKET_NAME') || 'cricket-arabia';
   }
 
   async upload(file:  Express.Multer.File, createDocumentDto: CreateDocumentDto) : Promise<Document> {

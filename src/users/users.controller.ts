@@ -11,7 +11,7 @@ import { UpdateUserRoleDto } from './dto/update-user-role.dto';
 import { AuthGuard } from '@nestjs/passport';
 import { GetUser } from '../auth/get-user.decorator'; // Import GetUser from auth module
 import { User, UserRole } from '../auth/user.entity';
-import { Roles } from 'src/auth/roles.decorator';
+import { Roles } from '../auth/roles.decorator';
 
 @Controller('users')
 @UseGuards(AuthGuard()) // Ensure only authenticated users can access these endpoints

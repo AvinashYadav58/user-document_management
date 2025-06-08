@@ -19,7 +19,7 @@ import { GetDocumentsFilterDto } from './dto/get-documents-filter.dto';
 import { Document } from './document.entity';
 import { AuthGuard } from '@nestjs/passport';
 import { Roles } from '../auth/roles.decorator';
-import { UserRole } from 'src/auth/user.entity';
+import { UserRole } from '../auth/user.entity';
   
   @Controller('documents')
   @UseGuards(AuthGuard())

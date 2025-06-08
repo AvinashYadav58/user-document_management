@@ -1,8 +1,8 @@
 import { Controller, Post, Get, Param, Patch, Body, UseGuards } from '@nestjs/common';
 import { IngestionService } from './ingestion.service';
 import { AuthGuard } from '@nestjs/passport';
-import { Roles } from 'src/auth/roles.decorator';
-import { UserRole } from 'src/auth/user.entity';
+import { Roles } from '../auth/roles.decorator';
+import { UserRole } from '../auth/user.entity';
 import { Ingestion } from './ingestion.entity';
 
 @Controller('ingestion')
