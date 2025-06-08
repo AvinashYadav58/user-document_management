@@ -6,14 +6,17 @@
 
 ## Description
 
-This project is a backend service built using the [NestJS](https://nestjs.com/) framework. It provides user authentication, document management, and ingestion controls. The project integrates with AWS RDS for database management and is designed to be efficient and scalable.
+This project is a backend service built using the NestJS framework. It manages user authentication, document management, and ingestion processes. The project integrates with AWS RDS for database management and follows modular and scalable design principles.
+
+
 
 ## Features
 
 - User Authentication: Register, login, logout, and role-based access control (admin, editor, viewer).
 - User Management: Admin-only functionality for managing user roles and permissions.
-- Document Management: CRUD operations for user documents.
-- Ingestion Management: Handles document ingestion pipelines.
+- Document Management: CRUD operations for user documents. AWS S3 integration for secure document storage.
+- Ingestion Management: APIs to trigger and manage ingestion pipelines for document processing.
+
 
 ## Prerequisites
 
@@ -49,13 +52,17 @@ This project is a backend service built using the [NestJS](https://nestjs.com/) 
      ```
    - Update the `.env.stage.dev` file with your AWS RDS and application configuration:
      ```env
-     DB_HOST=<your-rds-endpoint>
-     DB_PORT=5432
-     DB_USERNAME=<your-db-username>
-     DB_PASSWORD=<your-db-password>
-     DB_DATABASE=<your-db-name>
-     JWT_SECRET=<your-jwt-secret>
-     STAGE=dev
+      AWS_ACCESS_KEY_ID='<your-aws-access-key>'
+      AWS_SECRET='<your-aws-secret-key>'
+      AWS_REGION='ap-south-1'
+      AWS_BUCKET_NAME='cricket-arabia'
+      DB_HOST='<your-db-host>'
+      DB_PORT='5432'
+      DB_USERNAME='postgres'
+      DB_PASSWORD='<your-db-password>'
+      DB_DATABASE='user_document_management'
+      JWT_SECRET='<your-jwt-secret>'
+
      ```
 
 ## Running the Application
