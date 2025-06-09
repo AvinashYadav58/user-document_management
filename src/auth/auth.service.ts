@@ -30,7 +30,6 @@ export class AuthService {
     if (!user) {
       throw new NotFoundException('User not found, please sign up first');
     }
-
     if (await bcrypt.compare(password, user.password)) {
       const payload: JwtPayload = {
         username,

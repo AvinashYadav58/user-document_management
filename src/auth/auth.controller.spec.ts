@@ -15,8 +15,10 @@ describe('AuthController', () => {
         {
           provide: AuthService,
           useValue: {
-            signup: jest.fn(),
-            signin: jest.fn().mockResolvedValue({ accessToken: 'testToken' }),
+            signup: jest.fn(() => () => {}),
+            signin: jest.fn(() =>
+              Promise.resolve({ accessToken: 'testToken' }),
+            ),
           },
         },
       ],
@@ -37,6 +39,7 @@ describe('AuthController', () => {
         password: 'test123',
       };
       await authController.signUp(authCredentialsDto);
+      // eslint-disable-next-line @typescript-eslint/unbound-method
       expect(authService.signup).toHaveBeenCalledWith(authCredentialsDto);
     });
   });

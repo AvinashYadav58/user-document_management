@@ -47,8 +47,11 @@ export class DocumentsService {
         uploadResult.Location,
         createDocumentDto,
       );
-    } catch (error) {
-      throw new Error(`Error uploading file: ${error.message}`);
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        throw new Error(`Error uploading file: ${error.message}`);
+      }
+      throw new Error('Error uploading file: Unknown error occurred');
     }
   }
 

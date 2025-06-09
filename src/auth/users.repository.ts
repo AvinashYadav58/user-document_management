@@ -17,15 +17,20 @@ export class UsersRepository extends Repository<User> {
   async createUser(authCredentialsDto: AuthCredentialsDto): Promise<void> {
     const { username, password } = authCredentialsDto;
 
-    const salt = await bcrypt.genSalt();
+    const salt: string = await bcrypt.genSalt(10); // Explicitly specify rounds for clarity
     const hashedPassword = await bcrypt.hash(password, salt);
 
     const user = this.create({ username, password: hashedPassword });
 
     try {
       await this.save(user);
-    } catch (error) {
-      if (error.code === '23505') {
+    } catch (error: unknown) {
+      if (
+        typeof error === 'object' &&
+        error !== null &&
+        'code' in error &&
+        (error as { code?: string }).code === '23505'
+      ) {
         throw new ConflictException('username already exists');
       } else {
         throw new InternalServerErrorException();

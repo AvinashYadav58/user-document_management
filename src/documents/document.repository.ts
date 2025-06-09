@@ -26,8 +26,13 @@ export class DocumentRepository extends Repository<Document> {
     try {
       await this.save(document);
       return document;
-    } catch (error) {
-      if (error.code === '23505') {
+    } catch (error: unknown) {
+      if (
+        typeof error === 'object' &&
+        error !== null &&
+        'code' in error &&
+        (error as { code?: string }).code === '23505'
+      ) {
         throw new ConflictException('Document with same name already exists');
       } else {
         throw new InternalServerErrorException();

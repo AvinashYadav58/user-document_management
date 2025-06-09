@@ -1,4 +1,3 @@
-import { Test, TestingModule } from '@nestjs/testing';
 import { DataSource } from 'typeorm';
 import { UsersRepository } from './users.repository';
 import { User } from './user.entity';
@@ -25,8 +24,12 @@ describe('UsersRepository', () => {
       const createMock = jest
         .spyOn(usersRepository, 'create')
         .mockReturnValue({} as User);
-      jest.spyOn(bcrypt, 'genSalt').mockResolvedValue('testSalt');
-      jest.spyOn(bcrypt, 'hash').mockResolvedValue('testHashedPassword');
+      (jest.spyOn(bcrypt, 'genSalt') as jest.Mock).mockResolvedValue(
+        'testSalt',
+      );
+      (jest.spyOn(bcrypt, 'hash') as jest.Mock).mockResolvedValue(
+        'testHashedPassword',
+      );
 
       const authCredentialsDto = { username: 'test', password: 'test123' };
       await usersRepository.createUser(authCredentialsDto);
