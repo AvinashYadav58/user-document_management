@@ -17,7 +17,7 @@ This project is a backend service built using the NestJS framework. It manages u
 
 ## Prerequisites
 
-- Node.js (v16 or later)
+- Node.js (v20 or later)
 - NPM or Yarn
 - AWS RDS (PostgreSQL instance configured)
 
