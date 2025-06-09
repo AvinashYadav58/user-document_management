@@ -6,8 +6,8 @@ import { Ingestion } from './ingestion.entity';
 import { AuthModule } from '../auth/auth.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Ingestion]),  AuthModule],
+  imports: [TypeOrmModule.forFeature([Ingestion]), AuthModule],
   controllers: [IngestionController],
-  providers: [IngestionService]
+  providers: [IngestionService],
 })
 export class IngestionModule {}

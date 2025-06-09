@@ -19,8 +19,12 @@ describe('UsersRepository', () => {
 
   describe('createUser', () => {
     it('should hash password and save user', async () => {
-      const saveMock = jest.spyOn(usersRepository, 'save').mockResolvedValue({} as User);
-      const createMock = jest.spyOn(usersRepository, 'create').mockReturnValue({} as User);
+      const saveMock = jest
+        .spyOn(usersRepository, 'save')
+        .mockResolvedValue({} as User);
+      const createMock = jest
+        .spyOn(usersRepository, 'create')
+        .mockReturnValue({} as User);
       jest.spyOn(bcrypt, 'genSalt').mockResolvedValue('testSalt');
       jest.spyOn(bcrypt, 'hash').mockResolvedValue('testHashedPassword');
 
@@ -38,7 +42,9 @@ describe('UsersRepository', () => {
       jest.spyOn(usersRepository, 'save').mockRejectedValue({ code: '23505' });
       const authCredentialsDto = { username: 'test', password: 'test123' };
 
-      await expect(usersRepository.createUser(authCredentialsDto)).rejects.toThrow('username already exists');
+      await expect(
+        usersRepository.createUser(authCredentialsDto),
+      ).rejects.toThrow('username already exists');
     });
   });
 });

@@ -76,6 +76,8 @@ describe('IngestionController', () => {
     const result = controller.completeIngestion(ingestionId);
 
     expect(service.completeIngestion).toHaveBeenCalledWith(ingestionId);
-    expect(result).toEqual({ message: `Ingestion process ${ingestionId} marked as complete` });
+    expect(result).toEqual({
+      message: `Ingestion process ${ingestionId} marked as complete`,
+    });
   });
 });

@@ -7,12 +7,12 @@ import { AuthModule } from '../auth/auth.module';
 import { ConfigModule } from '@nestjs/config';
 
 @Module({
-  imports : [
-   ConfigModule,
-   TypeOrmModule.forFeature([DocumentRepository]),
-   AuthModule
+  imports: [
+    ConfigModule,
+    TypeOrmModule.forFeature([DocumentRepository]),
+    AuthModule,
   ],
   controllers: [DocumentsController],
-  providers: [DocumentsService, DocumentRepository]
+  providers: [DocumentsService, DocumentRepository],
 })
 export class DocumentsModule {}

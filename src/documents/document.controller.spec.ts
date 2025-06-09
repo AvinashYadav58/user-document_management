@@ -37,7 +37,10 @@ describe('DocumentsController', () => {
   });
 
   it('should upload a document', async () => {
-    const file = { originalname: 'test.pdf', buffer: Buffer.from('test content') } as Express.Multer.File;
+    const file = {
+      originalname: 'test.pdf',
+      buffer: Buffer.from('test content'),
+    } as Express.Multer.File;
     const dto = new CreateDocumentDto();
     mockService.upload.mockResolvedValue(mockDocument);
 

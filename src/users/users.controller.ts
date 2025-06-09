@@ -1,11 +1,4 @@
-import {
-  Controller,
-  Get,
-  Patch,
-  UseGuards,
-  Body,
-  Param,
-} from '@nestjs/common';
+import { Controller, Get, Patch, UseGuards, Body, Param } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { UpdateUserRoleDto } from './dto/update-user-role.dto';
 import { AuthGuard } from '@nestjs/passport';
@@ -24,8 +17,8 @@ export class UsersController {
   }
 
   @Get(':id/user')
-  @Roles( UserRole.Admin)
-  async getUser(@Param('id') id: string,): Promise<User> {
+  @Roles(UserRole.Admin)
+  async getUser(@Param('id') id: string): Promise<User> {
     return this.usersService.getUser(id);
   }
 

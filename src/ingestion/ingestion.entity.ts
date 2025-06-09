@@ -20,7 +20,11 @@ export class Ingestion {
   @Column({ type: 'uuid' })
   documentId: string;
 
-  @Column({ type: 'enum', enum: IngestionStatus, default: IngestionStatus.IN_PROGRESS })
+  @Column({
+    type: 'enum',
+    enum: IngestionStatus,
+    default: IngestionStatus.IN_PROGRESS,
+  })
   status: IngestionStatus;
 
   @CreateDateColumn()

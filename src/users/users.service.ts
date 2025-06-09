@@ -1,4 +1,8 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User, UserRole } from '../auth/user.entity';
@@ -25,20 +29,23 @@ export class UsersService {
     return this.userRepository.find();
   }
 
-//   async updateUserRole(id: string, updateUserRoleDto: UpdateUserRoleDto): Promise<User> {
-//     const user = await this.userRepository.findOne({ where: { id } });
+  //   async updateUserRole(id: string, updateUserRoleDto: UpdateUserRoleDto): Promise<User> {
+  //     const user = await this.userRepository.findOne({ where: { id } });
 
-//     if (!user) {
-//       throw new NotFoundException(`User with ID "${id}" not found.`);
-//     }
+  //     if (!user) {
+  //       throw new NotFoundException(`User with ID "${id}" not found.`);
+  //     }
 
-//     user.role = updateUserRoleDto.role; 
-//     await this.userRepository.save(user);
+  //     user.role = updateUserRoleDto.role;
+  //     await this.userRepository.save(user);
 
-//     return user;
-//   }
+  //     return user;
+  //   }
 
-  async updateUserRole(id: string, updateUserRoleDto: UpdateUserRoleDto): Promise<User> {
+  async updateUserRole(
+    id: string,
+    updateUserRoleDto: UpdateUserRoleDto,
+  ): Promise<User> {
     const user = await this.userRepository.findOne({ where: { id } });
 
     if (!user) {
@@ -54,5 +61,4 @@ export class UsersService {
 
     return user;
   }
-
 }

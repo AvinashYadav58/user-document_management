@@ -1,19 +1,19 @@
-import { Entity, Column, PrimaryGeneratedColumn } from "typeorm";
+import { Entity, Column, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity()
 export class Document {
- @PrimaryGeneratedColumn('uuid')
- id: string;
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
 
- @Column({ unique: true})
- title: string;
+  @Column({ unique: true })
+  title: string;
 
- @Column()
- description: string;
+  @Column()
+  description: string;
 
- @Column()
- filePath: string
+  @Column()
+  filePath: string;
 
- @Column()
- author: string;
+  @Column()
+  author: string;
 }

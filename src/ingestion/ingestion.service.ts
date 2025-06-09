@@ -24,7 +24,9 @@ export class IngestionService {
     });
 
     if (!ingestion) {
-      throw new NotFoundException(`Ingestion process with ID "${ingestionId}" not found`);
+      throw new NotFoundException(
+        `Ingestion process with ID "${ingestionId}" not found`,
+      );
     }
     return ingestion;
   }
@@ -39,14 +41,15 @@ export class IngestionService {
     });
 
     if (!ingestion) {
-      throw new NotFoundException(`Ingestion process with ID "${ingestionId}" not found`);
+      throw new NotFoundException(
+        `Ingestion process with ID "${ingestionId}" not found`,
+      );
     }
 
     ingestion.status = IngestionStatus.COMPLETED;
     ingestion.completedAt = new Date();
 
     await this.ingestionRepository.save(ingestion);
-  
   }
 
   async failIngestion(ingestionId: string): Promise<void> {
@@ -55,7 +58,9 @@ export class IngestionService {
     });
 
     if (!ingestion) {
-      throw new NotFoundException(`Ingestion process with ID "${ingestionId}" not found`);
+      throw new NotFoundException(
+        `Ingestion process with ID "${ingestionId}" not found`,
+      );
     }
 
     ingestion.status = IngestionStatus.FAILED;

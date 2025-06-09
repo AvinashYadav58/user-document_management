@@ -8,15 +8,12 @@
 
 This project is a backend service built using the NestJS framework. It manages user authentication, document management, and ingestion processes. The project integrates with AWS RDS for database management and follows modular and scalable design principles.
 
-
-
 ## Features
 
 - User Authentication: Register, login, logout, and role-based access control (admin, editor, viewer).
 - User Management: Admin-only functionality for managing user roles and permissions.
 - Document Management: CRUD operations for user documents. AWS S3 integration for secure document storage.
 - Ingestion Management: APIs to trigger and manage ingestion pipelines for document processing.
-
 
 ## Prerequisites
 
@@ -27,30 +24,37 @@ This project is a backend service built using the NestJS framework. It manages u
 ## Project Setup
 
 1. **Clone the Repository**
+
    ```bash
    git clone https://github.com/AvinashYadav58/user-document_management.git
    ```
 
 2. **Navigate to the Project Directory**
+
    ```bash
    cd user-document_management
    ```
 
 3. **Install Dependencies**
+
    ```bash
    npm install
    ```
+
    or
+
    ```bash
    yarn install
    ```
 
 4. **Configure Environment Variables**
+
    - Create a `.env.stage.dev` file:
      ```bash
      cp .env.example .env.stage.dev
      ```
    - Update the `.env.stage.dev` file with your AWS RDS and application configuration:
+
      ```env
       AWS_ACCESS_KEY_ID='<your-aws-access-key>'
       AWS_SECRET='<your-aws-secret-key>'
@@ -68,11 +72,13 @@ This project is a backend service built using the NestJS framework. It manages u
 ## Running the Application
 
 - **Development Mode** (with live reload):
+
   ```bash
   npm run start:dev
   ```
 
 - **Production Mode**:
+
   ```bash
   npm run build
   npm run start:prod
@@ -86,11 +92,13 @@ This project is a backend service built using the NestJS framework. It manages u
 ## Running Tests
 
 - **Unit Tests**:
+
   ```bash
   npm run test
   ```
 
 - **E2E Tests**:
+
   ```bash
   npm run test:e2e
   ```

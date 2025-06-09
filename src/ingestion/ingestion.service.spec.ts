@@ -53,7 +53,10 @@ describe('IngestionService', () => {
 
   it('should get ingestion status', async () => {
     const ingestionId = 'ing-123';
-    const mockIngestion = { id: ingestionId, status: IngestionStatus.IN_PROGRESS };
+    const mockIngestion = {
+      id: ingestionId,
+      status: IngestionStatus.IN_PROGRESS,
+    };
 
     mockRepository.findOne.mockResolvedValue(mockIngestion);
 
@@ -69,13 +72,18 @@ describe('IngestionService', () => {
     mockRepository.findOne.mockResolvedValue(null);
 
     await expect(service.getIngestionStatus(ingestionId)).rejects.toThrow(
-      new NotFoundException(`Ingestion process with ID "${ingestionId}" not found`),
+      new NotFoundException(
+        `Ingestion process with ID "${ingestionId}" not found`,
+      ),
     );
   });
 
   it('should complete ingestion', async () => {
     const ingestionId = 'ing-123';
-    const mockIngestion = { id: ingestionId, status: IngestionStatus.IN_PROGRESS };
+    const mockIngestion = {
+      id: ingestionId,
+      status: IngestionStatus.IN_PROGRESS,
+    };
 
     mockRepository.findOne.mockResolvedValue(mockIngestion);
     mockRepository.save.mockResolvedValue(undefined);
@@ -93,7 +101,10 @@ describe('IngestionService', () => {
   it('should fail ingestion', async () => {
     const ingestionId = 'ing-123';
     const errorMessage = 'Some error occurred';
-    const mockIngestion = { id: ingestionId, status: IngestionStatus.IN_PROGRESS };
+    const mockIngestion = {
+      id: ingestionId,
+      status: IngestionStatus.IN_PROGRESS,
+    };
 
     mockRepository.findOne.mockResolvedValue(mockIngestion);
     mockRepository.save.mockResolvedValue(undefined);

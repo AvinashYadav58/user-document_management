@@ -37,12 +37,19 @@ describe('UsersService', () => {
 
   describe('getUser', () => {
     it('should return a user by ID', async () => {
-      const user: User = { id: '1', username: 'testUser', password: 'testPassword', role: UserRole.Editor };
+      const user: User = {
+        id: '1',
+        username: 'testUser',
+        password: 'testPassword',
+        role: UserRole.Editor,
+      };
       mockUserRepository.findOne.mockResolvedValue(user);
 
       const result = await usersService.getUser('1');
       expect(result).toBe(user);
-      expect(mockUserRepository.findOne).toHaveBeenCalledWith({ where: { id: '1' } });
+      expect(mockUserRepository.findOne).toHaveBeenCalledWith({
+        where: { id: '1' },
+      });
     });
 
     it('should throw NotFoundException if user not found', async () => {
@@ -65,8 +72,18 @@ describe('UsersService', () => {
   describe('getAllUsers', () => {
     it('should return all users', async () => {
       const users: User[] = [
-        { id: '1', username: 'user1', password: 'password1', role: UserRole.Editor },
-        { id: '2', username: 'user2', password: 'password2', role: UserRole.Admin },
+        {
+          id: '1',
+          username: 'user1',
+          password: 'password1',
+          role: UserRole.Editor,
+        },
+        {
+          id: '2',
+          username: 'user2',
+          password: 'password2',
+          role: UserRole.Admin,
+        },
       ];
       mockUserRepository.find.mockResolvedValue(users);
 
@@ -85,15 +102,25 @@ describe('UsersService', () => {
 
   describe('updateUserRole', () => {
     it('should update the user role', async () => {
-      const user: User = { id: '1', username: 'testUser', password: 'testPassword', role: UserRole.Editor };
+      const user: User = {
+        id: '1',
+        username: 'testUser',
+        password: 'testPassword',
+        role: UserRole.Editor,
+      };
       const updateUserRoleDto: UpdateUserRoleDto = { role: UserRole.Admin };
 
       mockUserRepository.findOne.mockResolvedValue(user);
-      mockUserRepository.save.mockResolvedValue({ ...user, role: UserRole.Admin });
+      mockUserRepository.save.mockResolvedValue({
+        ...user,
+        role: UserRole.Admin,
+      });
 
       const result = await usersService.updateUserRole('1', updateUserRoleDto);
       expect(result).toEqual({ ...user, role: UserRole.Admin });
-      expect(mockUserRepository.findOne).toHaveBeenCalledWith({ where: { id: '1' } });
+      expect(mockUserRepository.findOne).toHaveBeenCalledWith({
+        where: { id: '1' },
+      });
       expect(mockUserRepository.save).toHaveBeenCalledWith({
         ...user,
         role: UserRole.Admin,
@@ -121,14 +148,21 @@ describe('UsersService', () => {
     // });
 
     it('should throw error for invalid role format', async () => {
-        const user: User = { id: '1', username: 'testUser', password: 'testPassword', role: UserRole.Editor };
-        const invalidRoleDto = { role: 'InvalidRole' } as unknown as UpdateUserRoleDto;
+      const user: User = {
+        id: '1',
+        username: 'testUser',
+        password: 'testPassword',
+        role: UserRole.Editor,
+      };
+      const invalidRoleDto = {
+        role: 'InvalidRole',
+      } as unknown as UpdateUserRoleDto;
 
-        mockUserRepository.findOne.mockResolvedValue(user);
+      mockUserRepository.findOne.mockResolvedValue(user);
 
-        await expect(usersService.updateUserRole('1', invalidRoleDto)).rejects.toThrow(
-            new BadRequestException('Invalid role provided.'),
-        );
+      await expect(
+        usersService.updateUserRole('1', invalidRoleDto),
+      ).rejects.toThrow(new BadRequestException('Invalid role provided.'));
     });
   });
 });

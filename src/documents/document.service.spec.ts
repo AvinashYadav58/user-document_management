@@ -109,10 +109,12 @@ describe('DocumentsService', () => {
           ACL: 'public-read',
         }),
       );
-      expect(documentRepository.save).toHaveBeenCalledWith(expect.objectContaining({
-        filePath: s3Response.Location,
-        ...createDto,
-      }));
+      expect(documentRepository.save).toHaveBeenCalledWith(
+        expect.objectContaining({
+          filePath: s3Response.Location,
+          ...createDto,
+        }),
+      );
       expect(result).toEqual({
         id: '123',
         filePath: s3Response.Location,
@@ -130,14 +132,18 @@ describe('DocumentsService', () => {
 
       s3UploadMock.mockRejectedValueOnce(new Error('S3 upload failed'));
 
-      await expect(service.upload(file, createDto as any)).rejects.toThrow('Error uploading file: S3 upload failed');
+      await expect(service.upload(file, createDto as any)).rejects.toThrow(
+        'Error uploading file: S3 upload failed',
+      );
     });
   });
 
   describe('findAll', () => {
     it.skip('returns list of documents', async () => {
       const documents = [{ id: '1' }, { id: '2' }] as any[];
-      (documentRepository.getDocuments as jest.Mock).mockResolvedValueOnce(documents);
+      (documentRepository.getDocuments as jest.Mock).mockResolvedValueOnce(
+        documents,
+      );
 
       const result = await service.findAll({});
 

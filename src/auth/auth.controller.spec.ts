@@ -32,7 +32,10 @@ describe('AuthController', () => {
 
   describe('signUp', () => {
     it('should call AuthService.signup with correct params', async () => {
-      const authCredentialsDto: AuthCredentialsDto = { username: 'test', password: 'test123' };
+      const authCredentialsDto: AuthCredentialsDto = {
+        username: 'test',
+        password: 'test123',
+      };
       await authController.signUp(authCredentialsDto);
       expect(authService.signup).toHaveBeenCalledWith(authCredentialsDto);
     });
@@ -40,7 +43,10 @@ describe('AuthController', () => {
 
   describe('signIn', () => {
     it('should return an access token', async () => {
-      const authCredentialsDto: AuthCredentialsDto = { username: 'test', password: 'test123' };
+      const authCredentialsDto: AuthCredentialsDto = {
+        username: 'test',
+        password: 'test123',
+      };
       const result = await authController.signIn(authCredentialsDto);
       expect(result).toEqual({ accessToken: 'testToken' });
     });
