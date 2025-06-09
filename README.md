@@ -103,12 +103,6 @@ If you prefer a managed cloud database, you can use **Amazon RDS** to host your 
    npm install
    ```
 
-   or
-
-   ```bash
-   yarn install
-   ```
-
 ### 4. **Configure Environment Variables**
 
    - Create a `.env.stage.dev` file in the root directory of the project.
@@ -211,7 +205,9 @@ This application uses **JWT (JSON Web Tokens)** for secure authentication and **
 This document provides a comprehensive overview of the available APIs in the User Document Management system. It explains each API's purpose, request methods, required headers, payloads, and expected responses. The document also highlights role-based access control for each endpoint.
 
 ### Postma collection
+```bash
 https://api.postman.com/collections/27097214-1d5d95e5-07c1-47f1-9b55-6f4a5c2b80dc?access_key=PMAT-01JX8CMR92SCQV8NVRP2MQ92GX 
+```
 
 
 ### Authentication APIs
@@ -219,10 +215,12 @@ https://api.postman.com/collections/27097214-1d5d95e5-07c1-47f1-9b55-6f4a5c2b80d
 Purpose: Register a new user in the system.
  Endpoint: POST /auth/signup
  Request Example:
+ ```bash
 curl --location 'http://localhost:3000/auth/signup' \
 --header 'Content-Type: application/x-www-form-urlencoded' \
 --data-urlencode 'username=avinash23' \
 --data-urlencode 'password=StrongPass123!'
+```
 
 Response:
 200 OK: User registered successfully.
@@ -233,10 +231,12 @@ Response:
 Purpose: Authenticate a user and provide an access token.
  Endpoint: POST /auth/signin
  Request Example:
+ ```bash
 curl --location 'http://localhost:3000/auth/signin' \
 --header 'Content-Type: application/x-www-form-urlencoded' \
 --data-urlencode 'username=avinash22' \
 --data-urlencode 'password=StrongPass123!'
+```
 
 Response:
 {
@@ -249,8 +249,10 @@ Response:
 Purpose: Retrieve the profile details of the currently authenticated user.
  Endpoint: GET /users/profile
  Request Example:
+ ```bash
 curl --location 'http://localhost:3000/users/profile' \
 --header 'Authorization: Bearer <access-token>'
+```
 
 Response: User details.
 
@@ -258,8 +260,10 @@ Response: User details.
 Purpose: Retrieve details of a specific user by their ID.
  Endpoint: GET /users/:userId/user
  Request Example:
+ ```bash
 curl --location 'http://localhost:3000/users/<userId>/user' \
 --header 'Authorization: Bearer <access-token>'
+```
 
 Access Control: Admin only.
 
@@ -267,8 +271,10 @@ Access Control: Admin only.
 Purpose: Retrieve a list of all registered users.
  Endpoint: GET /users
  Request Example:
+ ```bash
 curl --location 'http://localhost:3000/users' \
 --header 'Authorization: Bearer <access-token>'
+```
 
 Access Control: Admin only.
 
@@ -276,10 +282,12 @@ Access Control: Admin only.
 Purpose: Modify the role of a specific user.
  Endpoint: PATCH /users/:userId/role
  Request Example:
+ ```bash
 curl --location --request PATCH 'http://localhost:3000/users/<userId>/role' \
 --header 'Content-Type: application/json' \
 --header 'Authorization: Bearer <access-token>' \
 --data '{"role": "Editor"}'
+```
 
 Access Control: Admin only.
 
@@ -287,8 +295,10 @@ Access Control: Admin only.
 Purpose: Delete a specific user.
  Endpoint: DELETE /users/:userId
  Request Example:
+ ```bash
 curl --location --request DELETE 'http://localhost:3000/users/305baa3b-8cb0-4116-a0a7-f12e74f119d4' \
 --header 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImF2aW5hc2gyMiIsInJvbGUiOiJBZG1pbiIsImlhdCI6MTc0OTQ0Mzg1MSwiZXhwIjoxNzQ5NDUxMDUxfQ.ukxtV4OjFplileEhvlkxwv7jZ22PoFJKAN3vv8aSOBk'
+```
 
 Access Control: Admin only.
 
@@ -297,12 +307,14 @@ Access Control: Admin only.
 Purpose: Upload a new document.
  Endpoint: POST /documents
  Request Example:
+ ```bash
 curl --location 'http://localhost:3000/documents' \
 --header 'Authorization: Bearer <access-token>' \
 --form 'file=@"/path/to/file.jpg"' \
 --form 'title="Document Title"' \
 --form 'description="Document Description"' \
 --form 'author="Author Name"'
+```
 
 Access Control: Admin and Editor only.
 
@@ -310,25 +322,31 @@ Access Control: Admin and Editor only.
 Purpose: Retrieve all documents.
  Endpoint: GET /documents
  Request Example:
+ ```bash
 curl --location 'http://localhost:3000/documents' \
 --header 'Authorization: Bearer <access-token>'
+```
 
 
 #### 3. Get Document by ID
 Purpose: Retrieve details of a specific document by its ID.
  Endpoint: GET /documents/:documentId
  Request Example:
+ ```bash
 curl --location 'http://localhost:3000/documents/<documentId>' \
 --header 'Authorization: Bearer <access-token>'
+```
 
 
 #### 4. Update Document
 Purpose: Update an existing document.
  Endpoint: PATCH /documents/:documentId
  Request Example:
+ ```bash
 curl --location --request PATCH 'http://localhost:3000/documents/<documentId>' \
 --header 'Content-Type: application/json' \
 --data '{"title":"Updated Title","description":"Updated Description","author":"Updated Author"}'
+```
 
 Access Control: Admin and Editor only.
 
@@ -336,8 +354,10 @@ Access Control: Admin and Editor only.
 Purpose: Delete a specific document.
  Endpoint: DELETE /documents/:documentId
  Request Example:
+ ```bash
 curl --location --request DELETE 'http://localhost:3000/documents/<documentId>' \
 --header 'Authorization: Bearer <access-token>'
+```
 
 Access Control: Admin only.
 
@@ -346,9 +366,11 @@ Access Control: Admin only.
 Purpose: Start an ingestion process for a document.
  Endpoint: POST /ingestion/trigger/:documentId
  Request Example:
+ ```bash
 curl --location --request POST 'http://localhost:3000/ingestion/trigger/<documentId>' \
 --header 'Content-Type: application/json' \
 --header 'Authorization: Bearer <access-token>'
+```
 
 Access Control: Admin and Editor only.
 
@@ -356,16 +378,20 @@ Access Control: Admin and Editor only.
 Purpose: Retrieve the status of a specific ingestion process.
  Endpoint: GET /ingestion/:documentId/status
  Request Example:
+ ```bash
 curl --location 'http://localhost:3000/ingestion/<documentId>/status' \
 --header 'Authorization: Bearer <access-token>'
+```
 
 
 #### 3. Get All Ingestion Processes
 Purpose: Retrieve all ingestion processes.
  Endpoint: GET /ingestion/all
  Request Example:
+ ```bash
 curl --location 'http://localhost:3000/ingestion/all' \
 --header 'Authorization: Bearer <access-token>'
+```
 
 Access Control: Admin only.
 
@@ -373,8 +399,10 @@ Access Control: Admin only.
 Purpose: Mark a specific ingestion process as complete.
  Endpoint: PATCH /ingestion/:documentId/complete
  Request Example:
+ ```bash
 curl --location --request PATCH 'http://localhost:3000/ingestion/<documentId>/complete' \
 --header 'Authorization: Bearer <access-token>'
+```
 
 Access Control: Admin only.
 
@@ -382,8 +410,10 @@ Access Control: Admin only.
 Purpose: Mark a specific ingestion process as failed.
  Endpoint: PATCH /ingestion/:documentId/fail
  Request Example:
+ ```bash
 curl --location --request PATCH 'http://localhost:3000/ingestion/<documentId>/fail' \
 --header 'Authorization: Bearer <access-token>'
+```
 
 Access Control: Admin only.
 
@@ -431,32 +461,54 @@ ssh -i your-key.pem ec2-user@<your-ec2-public-ip>
 
 ### 2. Deploy the Application
 #### a. Install Node.js, Git, PM2
-
+```bash
 curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
+```
+```bash
 sudo apt-get install -y nodejs git
+```
+```bash
 npm install -g pm2
+```
 #### b. Clone your Repository
 
+```bash
 git clone https://github.com/your-org/user_document_management.git
+```
+```bash
 cd user_document_management
+```
 #### c. Set up Environment File
 Create .env.stage.prod in the root directory:
 
+```bash
 nano .env.stage.prod
+```
 Include RDS DB and AWS S3 credentials (as defined in previous sections).
 
 #### d. Install & Build the Project
 
+```bash
 npm install
+```
+```bash
 npm run build
+```
 #### e. Start with PM2
 
+```bash
 pm2 start dist/main.js --name user-docs-api
+```
+```bash
 pm2 save
+```
+```bash
 pm2 startup
+```
 ### 3. Set Up CI/CD (GitHub Actions Example)
 In your project root, create .github/workflows/deploy.yml:
 
+```bash
 name: Deploy to EC2
 
 on:
@@ -492,7 +544,10 @@ jobs:
           npm install
           npm run build
           pm2 restart user-docs-api || pm2 start dist/main.js --name user-docs-api
+    
+ ```         
 Add your secrets (EC2_HOST, EC2_KEY) in GitHub > Settings > Secrets and Variables > Actions.
+
 
 ### 4. Post-Deployment Checklist
   #### i) Database connectivity is verified
@@ -504,5 +559,3 @@ Add your secrets (EC2_HOST, EC2_KEY) in GitHub > Settings > Secrets and Variable
   #### iv) pm2 ensures application restarts on reboot
 
   #### v) Logs available via pm2 logs
-
-
