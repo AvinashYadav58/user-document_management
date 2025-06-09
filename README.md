@@ -48,7 +48,7 @@ Default configuration:
 - **Username**: `postgres`
 - **Password**: *(set during installation)*
 
-Create the database:
+Create the database: user_document_management
 
 
 
@@ -115,10 +115,8 @@ If you prefer a managed cloud database, you can use **Amazon RDS** to host your 
 
 ### 4. **Configure Environment Variables**
 
-   - Create a `.env.stage.dev` file:
-     ```bash
-     cp .env.example .env.stage.dev
-     ```
+   - Create a `.env.stage.dev` file in the root directory of the project.
+     
    - Update the `.env.stage.dev` file with your AWS RDS, AWS S3 bucket and application configuration:
 
      ```env
@@ -137,6 +135,12 @@ If you prefer a managed cloud database, you can use **Amazon RDS** to host your 
 
 ## Running the Application
 
+- **Install packages**:
+
+  ```bash
+  npm install
+  ```
+
 - **Development Mode** (with live reload):
 
   ```bash
@@ -148,11 +152,6 @@ If you prefer a managed cloud database, you can use **Amazon RDS** to host your 
   ```bash
   npm run build
   npm run start:prod
-  ```
-
-- **Debug Mode**:
-  ```bash
-  npm run start:debug
   ```
 
 ## Running Tests
@@ -172,11 +171,192 @@ If you prefer a managed cloud database, you can use **Amazon RDS** to host your 
 
 The application runs on `http://localhost:3000` by default. Use tools like Postman or cURL to interact with the APIs.
 
-## Deployment
+
+
+## User Document Management API Documentation
+This document provides a comprehensive overview of the available APIs in the User Document Management system. It explains each API's purpose, request methods, required headers, payloads, and expected responses. The document also highlights role-based access control for each endpoint.
+
+
+### Authentication APIs
+#### 1. Sign Up
+Purpose: Register a new user in the system.
+ Endpoint: POST /auth/signup
+ Request Example:
+curl --location 'http://localhost:3000/auth/signup' \
+--header 'Content-Type: application/x-www-form-urlencoded' \
+--data-urlencode 'username=avinash23' \
+--data-urlencode 'password=StrongPass123!'
+
+Response:
+200 OK: User registered successfully.
+
+
+
+#### 2. Sign In
+Purpose: Authenticate a user and provide an access token.
+ Endpoint: POST /auth/signin
+ Request Example:
+curl --location 'http://localhost:3000/auth/signin' \
+--header 'Content-Type: application/x-www-form-urlencoded' \
+--data-urlencode 'username=avinash22' \
+--data-urlencode 'password=StrongPass123!'
+
+Response:
+{
+  "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ..."
+}
+
+
+### User Management APIs
+#### 1. Get Self Profile
+Purpose: Retrieve the profile details of the currently authenticated user.
+ Endpoint: GET /users/profile
+ Request Example:
+curl --location 'http://localhost:3000/users/profile' \
+--header 'Authorization: Bearer <access-token>'
+
+Response: User details.
+
+#### 2. Get User Details
+Purpose: Retrieve details of a specific user by their ID.
+ Endpoint: GET /users/:userId/user
+ Request Example:
+curl --location 'http://localhost:3000/users/<userId>/user' \
+--header 'Authorization: Bearer <access-token>'
+
+Access Control: Admin only.
+
+#### 3. Get All Users
+Purpose: Retrieve a list of all registered users.
+ Endpoint: GET /users
+ Request Example:
+curl --location 'http://localhost:3000/users' \
+--header 'Authorization: Bearer <access-token>'
+
+Access Control: Admin only.
+
+#### 4. Update User Role
+Purpose: Modify the role of a specific user.
+ Endpoint: PATCH /users/:userId/role
+ Request Example:
+curl --location --request PATCH 'http://localhost:3000/users/<userId>/role' \
+--header 'Content-Type: application/json' \
+--header 'Authorization: Bearer <access-token>' \
+--data '{"role": "Editor"}'
+
+Access Control: Admin only.
+
+#### 5. Delete user
+Purpose: Delete a specific user.
+ Endpoint: DELETE /users/:userId
+ Request Example:
+curl --location --request DELETE 'http://localhost:3000/users/305baa3b-8cb0-4116-a0a7-f12e74f119d4' \
+--header 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImF2aW5hc2gyMiIsInJvbGUiOiJBZG1pbiIsImlhdCI6MTc0OTQ0Mzg1MSwiZXhwIjoxNzQ5NDUxMDUxfQ.ukxtV4OjFplileEhvlkxwv7jZ22PoFJKAN3vv8aSOBk'
+
+Access Control: Admin only.
+
+### Document Management APIs
+#### 1. Upload Document
+Purpose: Upload a new document.
+ Endpoint: POST /documents
+ Request Example:
+curl --location 'http://localhost:3000/documents' \
+--header 'Authorization: Bearer <access-token>' \
+--form 'file=@"/path/to/file.jpg"' \
+--form 'title="Document Title"' \
+--form 'description="Document Description"' \
+--form 'author="Author Name"'
+
+Access Control: Admin and Editor only.
+
+#### 2. Get All Documents
+Purpose: Retrieve all documents.
+ Endpoint: GET /documents
+ Request Example:
+curl --location 'http://localhost:3000/documents' \
+--header 'Authorization: Bearer <access-token>'
+
+
+#### 3. Get Document by ID
+Purpose: Retrieve details of a specific document by its ID.
+ Endpoint: GET /documents/:documentId
+ Request Example:
+curl --location 'http://localhost:3000/documents/<documentId>' \
+--header 'Authorization: Bearer <access-token>'
+
+
+#### 4. Update Document
+Purpose: Update an existing document.
+ Endpoint: PATCH /documents/:documentId
+ Request Example:
+curl --location --request PATCH 'http://localhost:3000/documents/<documentId>' \
+--header 'Content-Type: application/json' \
+--data '{"title":"Updated Title","description":"Updated Description","author":"Updated Author"}'
+
+Access Control: Admin and Editor only.
+
+#### 5. Delete Document
+Purpose: Delete a specific document.
+ Endpoint: DELETE /documents/:documentId
+ Request Example:
+curl --location --request DELETE 'http://localhost:3000/documents/<documentId>' \
+--header 'Authorization: Bearer <access-token>'
+
+Access Control: Admin only.
+
+### Ingestion Management APIs
+#### 1. Trigger Ingestion
+Purpose: Start an ingestion process for a document.
+ Endpoint: POST /ingestion/trigger/:documentId
+ Request Example:
+curl --location --request POST 'http://localhost:3000/ingestion/trigger/<documentId>' \
+--header 'Content-Type: application/json' \
+--header 'Authorization: Bearer <access-token>'
+
+Access Control: Admin and Editor only.
+
+#### 2. Get Ingestion Status
+Purpose: Retrieve the status of a specific ingestion process.
+ Endpoint: GET /ingestion/:documentId/status
+ Request Example:
+curl --location 'http://localhost:3000/ingestion/<documentId>/status' \
+--header 'Authorization: Bearer <access-token>'
+
+
+#### 3. Get All Ingestion Processes
+Purpose: Retrieve all ingestion processes.
+ Endpoint: GET /ingestion/all
+ Request Example:
+curl --location 'http://localhost:3000/ingestion/all' \
+--header 'Authorization: Bearer <access-token>'
+
+Access Control: Admin only.
+
+#### 4. Mark Ingestion Complete
+Purpose: Mark a specific ingestion process as complete.
+ Endpoint: PATCH /ingestion/:documentId/complete
+ Request Example:
+curl --location --request PATCH 'http://localhost:3000/ingestion/<documentId>/complete' \
+--header 'Authorization: Bearer <access-token>'
+
+Access Control: Admin only.
+
+#### 5. Mark Ingestion Failed
+Purpose: Mark a specific ingestion process as failed.
+ Endpoint: PATCH /ingestion/:documentId/fail
+ Request Example:
+curl --location --request PATCH 'http://localhost:3000/ingestion/<documentId>/fail' \
+--header 'Authorization: Bearer <access-token>'
+
+Access Control: Admin only.
+
+
+
+
+
+## Deployment Plan
 
 No additional database setup is required as the project integrates directly with AWS RDS. Ensure the necessary security groups are configured to allow access to your RDS instance from the deployment environment.
 
 
-## License
 
-This project is [MIT licensed](LICENSE).
