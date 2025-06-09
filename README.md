@@ -1,9 +1,5 @@
 # User Document Management
 
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
-
 ## Description
 
 This project is a modular, scalable, and cloud-ready backend service built using the NestJS framework. It is designed to manage user authentication, role-based access control, document management, and document ingestion workflows. The system is engineered with a strong emphasis on code quality, testability, and maintainability, aligning with production-grade standards even if some features remain in a prototype state.
@@ -172,9 +168,50 @@ If you prefer a managed cloud database, you can use **Amazon RDS** to host your 
 The application runs on `http://localhost:3000` by default. Use tools like Postman or cURL to interact with the APIs.
 
 
+## Authentication & Authorization
+
+This application uses **JWT (JSON Web Tokens)** for secure authentication and **role-based authorization** using custom guards in the NestJS framework.
+
+### Authentication Flow
+
+#### 1. **User Signup:**
+   - When a new user signs up, they are automatically assigned the default role: `viewer`.
+   - The password is hashed and stored securely in the database.
+
+#### 2. **User Login:**
+   - The user provides valid credentials.
+   - On successful authentication, a **JWT token** is issued containing the user's ID and role.
+   - This token must be included in the `Authorization` header (`Bearer <token>`) for all protected requests.
+
+#### 3. **JWT Validation:**
+   - The application uses `JwtAuthGuard` to validate the presence and correctness of the JWT token on protected routes.
+   - The `JwtStrategy` decodes the token and attaches the user details to the request object.
+
+### Authorization & Role Management
+
+#### 1. **Roles and Access Control:**
+   - The app uses a custom `RolesGuard` to control access to routes based on user roles.
+   - Roles include: `admin`, `editor`, and `viewer`.
+   - Admins have full access to manage users and documents.
+   - Editors can create and update content.
+   - Viewers can only read data.
+
+#### 2. **Role Assignment:**
+   - When a user signs up, they are saved with the `viewer` role by default.
+   - **Only an admin** can update a user's role in the system (e.g., promote to `editor` or `admin`).
+   - There is no public API to change user roles; it's a protected admin-only operation.
+
+#### 3. **Route-Level Authorization:**
+   - Protected routes are decorated using the `@Roles()` decorator.
+   - The `RolesGuard` checks the user’s role from the JWT payload and grants/denies access accordingly.
+
+
 
 ## User Document Management API Documentation
 This document provides a comprehensive overview of the available APIs in the User Document Management system. It explains each API's purpose, request methods, required headers, payloads, and expected responses. The document also highlights role-based access control for each endpoint.
+
+### Postma collection
+https://api.postman.com/collections/27097214-1d5d95e5-07c1-47f1-9b55-6f4a5c2b80dc?access_key=PMAT-01JX8CMR92SCQV8NVRP2MQ92GX 
 
 
 ### Authentication APIs
@@ -352,11 +389,120 @@ Access Control: Admin only.
 
 
 
-
-
 ## Deployment Plan
 
-No additional database setup is required as the project integrates directly with AWS RDS. Ensure the necessary security groups are configured to allow access to your RDS instance from the deployment environment.
+This section outlines how to deploy the NestJS backend using **AWS EC2**, connect to **AWS RDS (PostgreSQL)**, and set up **CI/CD** for automatic deployment.
 
+---
+
+### Infrastructure Overview
+
+- **Backend**: NestJS Application
+- **Database**: AWS RDS PostgreSQL
+- **Server**: AWS EC2 (Amazon Linux 2 or Ubuntu)
+- **CI/CD**: GitHub Actions (or your preferred CI/CD provider)
+
+---
+
+### 1. Provision AWS Resources
+
+#### a. Set up RDS (PostgreSQL)
+
+Refer to the [RDS Setup](#option-b-aws-rds-postgresql) section to create and configure your PostgreSQL database on RDS.
+
+Make sure:
+- The instance is publicly accessible or accessible within a VPC subnet.
+- The security group allows inbound traffic on **port 5432** from the EC2 instance’s IP or security group.
+
+#### b. Launch EC2 Instance
+
+##### 1. Go to **EC2 > Launch Instance**
+##### 2. Choose **Ubuntu 22.04** or **Amazon Linux 2**
+##### 3. Configure the instance:
+   - Minimum: `t2.micro` (for test) or `t3.medium` (for production)
+   - Attach a security group that allows:
+     - SSH: Port `22` from your IP
+     - HTTP: Port `80` or app port `3000` (optional)
+##### 4. Generate or use an existing **key pair**
+##### 5. Connect via SSH after the instance is ready
+
+
+ssh -i your-key.pem ec2-user@<your-ec2-public-ip>
+
+### 2. Deploy the Application
+#### a. Install Node.js, Git, PM2
+
+curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
+sudo apt-get install -y nodejs git
+npm install -g pm2
+#### b. Clone your Repository
+
+git clone https://github.com/your-org/user_document_management.git
+cd user_document_management
+#### c. Set up Environment File
+Create .env.stage.prod in the root directory:
+
+nano .env.stage.prod
+Include RDS DB and AWS S3 credentials (as defined in previous sections).
+
+#### d. Install & Build the Project
+
+npm install
+npm run build
+#### e. Start with PM2
+
+pm2 start dist/main.js --name user-docs-api
+pm2 save
+pm2 startup
+### 3. Set Up CI/CD (GitHub Actions Example)
+In your project root, create .github/workflows/deploy.yml:
+
+name: Deploy to EC2
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout Repo
+      uses: actions/checkout@v3
+
+    - name: Copy Files to EC2
+      uses: appleboy/scp-action@v0.1.4
+      with:
+        host: ${{ secrets.EC2_HOST }}
+        username: ec2-user
+        key: ${{ secrets.EC2_KEY }}
+        source: "."
+        target: "/home/ec2-user/user_document_management"
+
+    - name: SSH and Restart App
+      uses: appleboy/ssh-action@v0.1.10
+      with:
+        host: ${{ secrets.EC2_HOST }}
+        username: ec2-user
+        key: ${{ secrets.EC2_KEY }}
+        script: |
+          cd /home/ec2-user/user_document_management
+          npm install
+          npm run build
+          pm2 restart user-docs-api || pm2 start dist/main.js --name user-docs-api
+Add your secrets (EC2_HOST, EC2_KEY) in GitHub > Settings > Secrets and Variables > Actions.
+
+### 4. Post-Deployment Checklist
+  #### i) Database connectivity is verified
+
+  #### ii) S3 upload credentials work
+
+  #### iii) Application is reachable via EC2 public IP or domain
+
+  #### iv) pm2 ensures application restarts on reboot
+
+  #### v) Logs available via pm2 logs
 
 
