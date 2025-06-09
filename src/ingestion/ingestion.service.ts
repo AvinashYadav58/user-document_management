@@ -35,7 +35,7 @@ export class IngestionService {
     return this.ingestionRepository.find();
   }
 
-  async completeIngestion(ingestionId: string): Promise<void> {
+  async completeIngestion(ingestionId: string): Promise<{ message: string }> {
     const ingestion = await this.ingestionRepository.findOne({
       where: { id: ingestionId },
     });
@@ -50,9 +50,11 @@ export class IngestionService {
     ingestion.completedAt = new Date();
 
     await this.ingestionRepository.save(ingestion);
+
+    return { message: 'Ingestion process completed successfully' };
   }
 
-  async failIngestion(ingestionId: string): Promise<void> {
+  async failIngestion(ingestionId: string): Promise<{ message: string }> {
     const ingestion = await this.ingestionRepository.findOne({
       where: { id: ingestionId },
     });
@@ -67,5 +69,7 @@ export class IngestionService {
     ingestion.errorMessage = 'An error occurred during ingestion';
 
     await this.ingestionRepository.save(ingestion);
+
+    return { message: 'Ingestion process failed' };
   }
 }

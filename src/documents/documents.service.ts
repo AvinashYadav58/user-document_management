@@ -19,14 +19,14 @@ export class DocumentsService {
     private readonly dataSource: DataSource,
     private readonly configService: ConfigService,
   ) {
-    this.documentRepository = new DocumentRepository(dataSource);
+    this.documentRepository = new DocumentRepository(this.dataSource);
     this.s3 = new S3({
-      accessKeyId: configService.get<string>('AWS_ACCESS_KEY_ID'),
-      secretAccessKey: configService.get<string>('AWS_SECRET'),
-      region: configService.get<string>('AWS_REGION'),
+      accessKeyId: this.configService.get<string>('AWS_ACCESS_KEY_ID'),
+      secretAccessKey: this.configService.get<string>('AWS_SECRET'),
+      region: this.configService.get<string>('AWS_REGION'),
     });
     this.bucketName =
-      configService.get<string>('AWS_BUCKET_NAME') || 'cricket-arabia';
+      this.configService.get<string>('AWS_BUCKET_NAME') || 'cricket-arabia';
   }
 
   async upload(
@@ -76,11 +76,13 @@ export class DocumentsService {
     return this.documentRepository.save(updatedDocument);
   }
 
-  async remove(id: string): Promise<void> {
+  async remove(id: string): Promise<{ message: string }> {
     const result = await this.documentRepository.delete(id);
 
     if (result.affected === 0) {
       throw new NotFoundException(`Document with ID ${id} not found`);
     }
+
+    return { message: `Document with ID ${id} deleted successfully` };
   }
 }

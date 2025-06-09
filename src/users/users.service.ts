@@ -22,25 +22,12 @@ export class UsersService {
       throw new NotFoundException(`User with ID "${id}" not found.`);
     }
 
-    return user; // Return an array to match the expected return type
+    return user;
   }
 
   async getAllUsers(): Promise<User[]> {
     return this.userRepository.find();
   }
-
-  //   async updateUserRole(id: string, updateUserRoleDto: UpdateUserRoleDto): Promise<User> {
-  //     const user = await this.userRepository.findOne({ where: { id } });
-
-  //     if (!user) {
-  //       throw new NotFoundException(`User with ID "${id}" not found.`);
-  //     }
-
-  //     user.role = updateUserRoleDto.role;
-  //     await this.userRepository.save(user);
-
-  //     return user;
-  //   }
 
   async updateUserRole(
     id: string,
@@ -60,5 +47,17 @@ export class UsersService {
     await this.userRepository.save(user);
 
     return user;
+  }
+
+  async removeUser(id: string): Promise<{ message: string }> {
+    const user = await this.userRepository.findOne({ where: { id } });
+
+    if (!user) {
+      throw new NotFoundException(`User with ID "${id}" not found.`);
+    }
+
+    await this.userRepository.delete(user);
+
+    return { message: `User with ID "${id}" deleted successfully.` };
   }
 }

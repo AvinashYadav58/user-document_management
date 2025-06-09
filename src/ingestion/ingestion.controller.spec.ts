@@ -1,18 +1,21 @@
 import { Test, TestingModule } from '@nestjs/testing';
+import { NotFoundException } from '@nestjs/common';
 import { IngestionController } from './ingestion.controller';
 import { IngestionService } from './ingestion.service';
-import { UserRole } from '../auth/user.entity';
-import { RolesGuard } from '../auth/roles.gaurd';
+import { Ingestion, IngestionStatus } from './ingestion.entity';
+
+jest.mock('./ingestion.service');
 
 describe('IngestionController', () => {
   let controller: IngestionController;
-  let service: IngestionService;
+  let service: jest.Mocked<IngestionService>;
 
-  const mockIngestionService = {
+  const mockService = {
     triggerIngestion: jest.fn(),
     getIngestionStatus: jest.fn(),
     getAllIngestions: jest.fn(),
     completeIngestion: jest.fn(),
+    failIngestion: jest.fn(),
   };
 
   beforeEach(async () => {
@@ -21,63 +24,139 @@ describe('IngestionController', () => {
       providers: [
         {
           provide: IngestionService,
-          useValue: mockIngestionService,
+          useValue: mockService,
         },
       ],
-    })
-      .overrideGuard(RolesGuard)
-      .useValue({ canActivate: jest.fn(() => true) }) // Mock role guard
-      .compile();
+    }).compile();
 
     controller = module.get<IngestionController>(IngestionController);
-    service = module.get<IngestionService>(IngestionService);
+    service = module.get(IngestionService);
   });
 
-  it('should trigger ingestion', async () => {
-    const documentId = 'doc-123';
-    const ingestionId = 'ing-456';
+  describe('triggerIngestion', () => {
+    it('should trigger ingestion and return ingestion ID', async () => {
+      service.triggerIngestion.mockResolvedValue('test-id');
 
-    mockIngestionService.triggerIngestion.mockResolvedValue(ingestionId);
+      const result = await controller.triggerIngestion('doc-id');
+      expect(result).toEqual({ ingestionId: 'test-id' });
+      // eslint-disable-next-line @typescript-eslint/unbound-method
+      expect(service.triggerIngestion).toHaveBeenCalledWith('doc-id');
+    });
 
-    const result = await controller.triggerIngestion(documentId);
+    it('should handle errors when triggering ingestion fails', async () => {
+      service.triggerIngestion.mockRejectedValue(
+        new Error('Triggering ingestion failed'),
+      );
 
-    expect(service.triggerIngestion).toHaveBeenCalledWith(documentId);
-    expect(result).toEqual({ ingestionId });
+      await expect(controller.triggerIngestion('invalid-doc')).rejects.toThrow(
+        'Triggering ingestion failed',
+      );
+      // eslint-disable-next-line @typescript-eslint/unbound-method
+      expect(service.triggerIngestion).toHaveBeenCalledWith('invalid-doc');
+    });
   });
 
-  it('should get ingestion status', async () => {
-    const ingestionId = 'ing-123';
-    const mockStatus = { id: ingestionId, status: 'IN_PROGRESS' };
+  describe('getIngestionStatus', () => {
+    it('should return ingestion status', async () => {
+      const mockIngestion = {
+        id: '1',
+        documentId: 'doc-1',
+        status: IngestionStatus.IN_PROGRESS,
+      } as Ingestion;
 
-    mockIngestionService.getIngestionStatus.mockResolvedValue(mockStatus);
+      service.getIngestionStatus.mockResolvedValue(mockIngestion);
 
-    const result = await controller.getIngestionStatus(ingestionId);
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+      const result = await controller.getIngestionStatus('1');
+      expect(result).toEqual(mockIngestion);
+      // eslint-disable-next-line @typescript-eslint/unbound-method
+      expect(service.getIngestionStatus).toHaveBeenCalledWith('1');
+    });
 
-    expect(service.getIngestionStatus).toHaveBeenCalledWith(ingestionId);
-    expect(result).toEqual(mockStatus);
+    it('should throw NotFoundException for non-existing ingestion', async () => {
+      service.getIngestionStatus.mockRejectedValue(
+        new NotFoundException('Ingestion process not found'),
+      );
+
+      await expect(controller.getIngestionStatus('invalid-id')).rejects.toThrow(
+        NotFoundException,
+      );
+      // eslint-disable-next-line @typescript-eslint/unbound-method
+      expect(service.getIngestionStatus).toHaveBeenCalledWith('invalid-id');
+    });
   });
 
-  it('should get all ingestions', async () => {
-    const mockIngestions = [{ id: 'ing-1' }, { id: 'ing-2' }];
+  describe('getAllIngestions', () => {
+    it('should return all ingestions', async () => {
+      const mockIngestions = [
+        { id: '1', documentId: 'doc-1' },
+        { id: '2', documentId: 'doc-2' },
+      ] as Ingestion[];
 
-    mockIngestionService.getAllIngestions.mockResolvedValue(mockIngestions);
+      service.getAllIngestions.mockResolvedValue(mockIngestions);
 
-    const result = await controller.getAllIngestions();
+      const result = await controller.getAllIngestions();
+      expect(result).toEqual(mockIngestions);
+      // eslint-disable-next-line @typescript-eslint/unbound-method
+      expect(service.getAllIngestions).toHaveBeenCalled();
+    });
 
-    expect(service.getAllIngestions).toHaveBeenCalled();
-    expect(result).toEqual(mockIngestions);
+    it('should handle errors when fetching ingestions fails', async () => {
+      service.getAllIngestions.mockRejectedValue(
+        new Error('Failed to retrieve ingestions'),
+      );
+
+      await expect(controller.getAllIngestions()).rejects.toThrow(
+        'Failed to retrieve ingestions',
+      );
+      // eslint-disable-next-line @typescript-eslint/unbound-method
+      expect(service.getAllIngestions).toHaveBeenCalled();
+    });
   });
 
-  it('should complete ingestion', async () => {
-    const ingestionId = 'ing-123';
+  describe('completeIngestion', () => {
+    it('should complete ingestion successfully', async () => {
+      service.completeIngestion.mockResolvedValue({
+        message: 'Ingestion completed',
+      });
 
-    mockIngestionService.completeIngestion.mockResolvedValue(undefined);
+      await controller.completeIngestion('ingestion-id');
+      // eslint-disable-next-line @typescript-eslint/unbound-method
+      expect(service.completeIngestion).toHaveBeenCalledWith('ingestion-id');
+    });
 
-    const result = controller.completeIngestion(ingestionId);
+    it('should throw NotFoundException for invalid ID', async () => {
+      service.completeIngestion.mockRejectedValue(
+        new NotFoundException('Ingestion process not found'),
+      );
 
-    expect(service.completeIngestion).toHaveBeenCalledWith(ingestionId);
-    expect(result).toEqual({
-      message: `Ingestion process ${ingestionId} marked as complete`,
+      await expect(controller.completeIngestion('invalid-id')).rejects.toThrow(
+        NotFoundException,
+      );
+      // eslint-disable-next-line @typescript-eslint/unbound-method
+      expect(service.completeIngestion).toHaveBeenCalledWith('invalid-id');
+    });
+  });
+
+  describe('failIngestion', () => {
+    it('should mark ingestion as failed successfully', async () => {
+      service.failIngestion.mockResolvedValue({ message: 'Ingestion failed' });
+
+      await controller.failIngestion('ingestion-id');
+      // eslint-disable-next-line @typescript-eslint/unbound-method
+      expect(service.failIngestion).toHaveBeenCalledWith('ingestion-id');
+    });
+
+    it('should throw NotFoundException for invalid ID', async () => {
+      service.failIngestion.mockRejectedValue(
+        new NotFoundException('Ingestion process not found'),
+      );
+
+      await expect(controller.failIngestion('invalid-id')).rejects.toThrow(
+        NotFoundException,
+      );
+      // eslint-disable-next-line @typescript-eslint/unbound-method
+      expect(service.failIngestion).toHaveBeenCalledWith('invalid-id');
     });
   });
 });

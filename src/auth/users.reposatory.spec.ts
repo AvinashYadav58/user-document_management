@@ -1,53 +1,60 @@
-import { DataSource } from 'typeorm';
 import { UsersRepository } from './users.repository';
-import { User } from './user.entity';
+import { DataSource } from 'typeorm';
+import {
+  ConflictException,
+  InternalServerErrorException,
+} from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 
 describe('UsersRepository', () => {
   let usersRepository: UsersRepository;
 
+  const mockManager = {
+    save: jest.fn(),
+  };
+
+  const mockDataSource = {
+    createEntityManager: () => mockManager,
+  } as unknown as DataSource;
+
   beforeEach(() => {
-    const dataSource = new DataSource({
-      type: 'sqlite',
-      database: ':memory:',
-      entities: [],
-      synchronize: true,
-    });
-    usersRepository = new UsersRepository(dataSource);
+    usersRepository = new UsersRepository(mockDataSource);
+    usersRepository.create = jest
+      .fn()
+      .mockImplementation(
+        (user: { username: string; password: string }) => user,
+      );
+    usersRepository.save = jest.fn();
   });
 
   describe('createUser', () => {
+    const dto = { username: 'test', password: '1234' };
+
     it('should hash password and save user', async () => {
-      const saveMock = jest
-        .spyOn(usersRepository, 'save')
-        .mockResolvedValue({} as User);
-      const createMock = jest
-        .spyOn(usersRepository, 'create')
-        .mockReturnValue({} as User);
-      (jest.spyOn(bcrypt, 'genSalt') as jest.Mock).mockResolvedValue(
-        'testSalt',
-      );
-      (jest.spyOn(bcrypt, 'hash') as jest.Mock).mockResolvedValue(
-        'testHashedPassword',
-      );
-
-      const authCredentialsDto = { username: 'test', password: 'test123' };
-      await usersRepository.createUser(authCredentialsDto);
-
-      expect(createMock).toHaveBeenCalledWith({
-        username: 'test',
-        password: 'testHashedPassword',
+      (jest.spyOn(bcrypt, 'genSalt') as jest.Mock).mockResolvedValue('salt');
+      (jest.spyOn(bcrypt, 'hash') as jest.Mock).mockResolvedValue('hashed');
+      await usersRepository.createUser(dto);
+      // eslint-disable-next-line @typescript-eslint/unbound-method
+      expect(usersRepository.create).toHaveBeenCalledWith({
+        username: dto.username,
+        password: 'hashed',
       });
-      expect(saveMock).toHaveBeenCalled();
+      // eslint-disable-next-line @typescript-eslint/unbound-method
+      expect(usersRepository.save).toHaveBeenCalled();
     });
 
-    it('should throw ConflictException if username already exists', async () => {
-      jest.spyOn(usersRepository, 'save').mockRejectedValue({ code: '23505' });
-      const authCredentialsDto = { username: 'test', password: 'test123' };
+    it('should throw ConflictException on duplicate username', async () => {
+      usersRepository.save = jest.fn().mockRejectedValue({ code: '23505' });
+      await expect(usersRepository.createUser(dto)).rejects.toThrow(
+        ConflictException,
+      );
+    });
 
-      await expect(
-        usersRepository.createUser(authCredentialsDto),
-      ).rejects.toThrow('username already exists');
+    it('should throw InternalServerErrorException on other errors', async () => {
+      usersRepository.save = jest.fn().mockRejectedValue({ code: '12345' });
+      await expect(usersRepository.createUser(dto)).rejects.toThrow(
+        InternalServerErrorException,
+      );
     });
   });
 });

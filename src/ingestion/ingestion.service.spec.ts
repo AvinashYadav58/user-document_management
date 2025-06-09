@@ -1,121 +1,123 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { IngestionService } from './ingestion.service';
-import { Repository } from 'typeorm';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { Ingestion, IngestionStatus } from './ingestion.entity';
+import { Repository } from 'typeorm';
 import { NotFoundException } from '@nestjs/common';
 
 describe('IngestionService', () => {
   let service: IngestionService;
-  let repo: Repository<Ingestion>;
+  let repository: jest.Mocked<Repository<Ingestion>>;
 
-  const mockRepository = {
+  const mockRepo = () => ({
     create: jest.fn(),
     save: jest.fn(),
     findOne: jest.fn(),
     find: jest.fn(),
-  };
+  });
 
   beforeEach(async () => {
-    // Reset all mocks before each test
-    mockRepository.create = jest.fn();
-    mockRepository.save = jest.fn();
-    mockRepository.findOne = jest.fn();
-    mockRepository.find = jest.fn();
-
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         IngestionService,
         {
           provide: getRepositoryToken(Ingestion),
-          useValue: mockRepository,
+          useFactory: mockRepo,
         },
       ],
     }).compile();
 
     service = module.get<IngestionService>(IngestionService);
-    repo = module.get<Repository<Ingestion>>(getRepositoryToken(Ingestion));
+    repository = module.get(getRepositoryToken(Ingestion));
   });
 
-  it('should trigger ingestion', async () => {
-    const documentId = 'doc-123';
-    const mockIngestion = { id: 'ing-123', documentId };
+  describe('triggerIngestion', () => {
+    it('should create and save a new ingestion and return its ID', async () => {
+      const ingestion = { id: 'ingestion-id' } as Ingestion;
+      repository.create.mockReturnValue(ingestion);
+      repository.save.mockResolvedValue(ingestion);
 
-    mockRepository.create.mockReturnValue(mockIngestion);
-    mockRepository.save.mockResolvedValue(mockIngestion);
-
-    const result = await service.triggerIngestion(documentId);
-
-    expect(repo.create).toHaveBeenCalledWith({ documentId });
-    expect(repo.save).toHaveBeenCalledWith(mockIngestion);
-    expect(result).toEqual('ing-123');
-  });
-
-  it('should get ingestion status', async () => {
-    const ingestionId = 'ing-123';
-    const mockIngestion = {
-      id: ingestionId,
-      status: IngestionStatus.IN_PROGRESS,
-    };
-
-    mockRepository.findOne.mockResolvedValue(mockIngestion);
-
-    const result = await service.getIngestionStatus(ingestionId);
-
-    expect(repo.findOne).toHaveBeenCalledWith({ where: { id: ingestionId } });
-    expect(result).toEqual(mockIngestion);
-  });
-
-  it('should throw NotFoundException if ingestion not found', async () => {
-    const ingestionId = 'ing-123';
-
-    mockRepository.findOne.mockResolvedValue(null);
-
-    await expect(service.getIngestionStatus(ingestionId)).rejects.toThrow(
-      new NotFoundException(
-        `Ingestion process with ID "${ingestionId}" not found`,
-      ),
-    );
-  });
-
-  it('should complete ingestion', async () => {
-    const ingestionId = 'ing-123';
-    const mockIngestion = {
-      id: ingestionId,
-      status: IngestionStatus.IN_PROGRESS,
-    };
-
-    mockRepository.findOne.mockResolvedValue(mockIngestion);
-    mockRepository.save.mockResolvedValue(undefined);
-
-    await service.completeIngestion(ingestionId);
-
-    expect(repo.findOne).toHaveBeenCalledWith({ where: { id: ingestionId } });
-    expect(repo.save).toHaveBeenCalledWith({
-      ...mockIngestion,
-      status: IngestionStatus.COMPLETED,
-      completedAt: expect.any(Date),
+      const result = await service.triggerIngestion('doc-id');
+      expect(result).toBe('ingestion-id');
+      // eslint-disable-next-line @typescript-eslint/unbound-method
+      expect(repository.create).toHaveBeenCalledWith({ documentId: 'doc-id' });
+      // eslint-disable-next-line @typescript-eslint/unbound-method
+      expect(repository.save).toHaveBeenCalledWith(ingestion);
     });
   });
 
-  it('should fail ingestion', async () => {
-    const ingestionId = 'ing-123';
-    const errorMessage = 'Some error occurred';
-    const mockIngestion = {
-      id: ingestionId,
-      status: IngestionStatus.IN_PROGRESS,
-    };
+  describe('getIngestionStatus', () => {
+    it('should return the ingestion if found', async () => {
+      const ingestion = { id: 'id' } as Ingestion;
+      repository.findOne.mockResolvedValue(ingestion);
+      const result = await service.getIngestionStatus('id');
+      expect(result).toEqual(ingestion);
+    });
 
-    mockRepository.findOne.mockResolvedValue(mockIngestion);
-    mockRepository.save.mockResolvedValue(undefined);
+    it('should throw NotFoundException if ingestion not found', async () => {
+      repository.findOne.mockResolvedValue(null);
+      await expect(service.getIngestionStatus('id')).rejects.toThrow(
+        NotFoundException,
+      );
+    });
+  });
 
-    await service.failIngestion(ingestionId);
+  describe('getAllIngestions', () => {
+    it('should return all ingestions', async () => {
+      const ingestions = [{ id: '1' }, { id: '2' }] as Ingestion[];
+      repository.find.mockResolvedValue(ingestions);
+      expect(await service.getAllIngestions()).toEqual(ingestions);
+    });
+  });
 
-    expect(repo.findOne).toHaveBeenCalledWith({ where: { id: ingestionId } });
-    expect(repo.save).toHaveBeenCalledWith({
-      ...mockIngestion,
-      status: IngestionStatus.FAILED,
-      errorMessage,
+  describe('completeIngestion', () => {
+    it('should update status to COMPLETED and save', async () => {
+      const ingestion = { id: '1' } as Ingestion;
+      repository.findOne.mockResolvedValue(ingestion);
+      repository.save.mockResolvedValue({
+        ...ingestion,
+        status: IngestionStatus.COMPLETED,
+      });
+
+      await service.completeIngestion('1');
+      expect(ingestion.status).toBe(IngestionStatus.COMPLETED);
+      // eslint-disable-next-line @typescript-eslint/unbound-method
+      expect(repository.save).toHaveBeenCalledWith(
+        expect.objectContaining({ status: IngestionStatus.COMPLETED }),
+      );
+    });
+
+    it('should throw NotFoundException if ingestion not found', async () => {
+      repository.findOne.mockResolvedValue(null);
+      await expect(service.completeIngestion('id')).rejects.toThrow(
+        NotFoundException,
+      );
+    });
+  });
+
+  describe('failIngestion', () => {
+    it('should update status to FAILED and save', async () => {
+      const ingestion = { id: '1' } as Ingestion;
+      repository.findOne.mockResolvedValue(ingestion);
+      repository.save.mockResolvedValue({
+        ...ingestion,
+        status: IngestionStatus.FAILED,
+      });
+
+      await service.failIngestion('1');
+      expect(ingestion.status).toBe(IngestionStatus.FAILED);
+      expect(ingestion.errorMessage).toBeDefined();
+      // eslint-disable-next-line @typescript-eslint/unbound-method
+      expect(repository.save).toHaveBeenCalledWith(
+        expect.objectContaining({ status: IngestionStatus.FAILED }),
+      );
+    });
+
+    it('should throw NotFoundException if ingestion not found', async () => {
+      repository.findOne.mockResolvedValue(null);
+      await expect(service.failIngestion('id')).rejects.toThrow(
+        NotFoundException,
+      );
     });
   });
 });

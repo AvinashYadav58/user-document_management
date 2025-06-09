@@ -1,4 +1,12 @@
-import { Controller, Get, Patch, UseGuards, Body, Param } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Patch,
+  UseGuards,
+  Body,
+  Param,
+  Delete,
+} from '@nestjs/common';
 import { UsersService } from './users.service';
 import { UpdateUserRoleDto } from './dto/update-user-role.dto';
 import { AuthGuard } from '@nestjs/passport';
@@ -35,5 +43,11 @@ export class UsersController {
     @Body() updateUserRoleDto: UpdateUserRoleDto,
   ): Promise<User> {
     return this.usersService.updateUserRole(id, updateUserRoleDto);
+  }
+
+  @Delete(':id')
+  @Roles(UserRole.Admin)
+  async deleteUser(@Param('id') id: string): Promise<{ message: string }> {
+    return this.usersService.removeUser(id);
   }
 }

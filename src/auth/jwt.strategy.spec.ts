@@ -1,54 +1,42 @@
-// import { Test, TestingModule } from '@nestjs/testing';
-// import { JwtStrategy } from './jwt.strategy';
-// import { UsersRepository } from './users.repository';
-// import { ConfigService } from '@nestjs/config';
+import { JwtStrategy } from './jwt.strategy';
+import { UnauthorizedException } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import { UsersRepository } from './users.repository';
 
-// describe('JwtStrategy', () => {
-//   let jwtStrategy: JwtStrategy;
-//   let usersRepository: UsersRepository;
+describe('JwtStrategy', () => {
+  let strategy: JwtStrategy;
+  let usersRepository: Partial<UsersRepository>;
 
-//   beforeEach(async () => {
-//     const module: TestingModule = await Test.createTestingModule({
-//       providers: [
-//         JwtStrategy,
-//         {
-//           provide: UsersRepository,
-//           useValue: {
-//             findOne: jest.fn(),
-//           },
-//         },
-//         {
-//           provide: ConfigService,
-//           useValue: {
-//             get: jest.fn().mockReturnValue('testSecret'),
-//           },
-//         },
-//       ],
-//     }).compile();
+  beforeEach(() => {
+    usersRepository = {
+      findOne: jest.fn(),
+    };
 
-//     jwtStrategy = module.get<JwtStrategy>(JwtStrategy);
-//     usersRepository = module.get<UsersRepository>(UsersRepository);
-//   });
+    strategy = new JwtStrategy(
+      usersRepository as any,
+      {
+        get: jest.fn().mockReturnValue('testsecret'),
+      } as any as ConfigService,
+    );
+  });
 
-//   it('should be defined', () => {
-//     expect(jwtStrategy).toBeDefined();
-//   });
+  describe('validate', () => {
+    it('returns user if found', async () => {
+      const mockUser = { username: 'test', role: 'user' };
+      (usersRepository.findOne as jest.Mock).mockResolvedValue(mockUser);
 
-//   describe('validate', () => {
-//     it('should throw UnauthorizedException if user is not found', async () => {
-//       jest.spyOn(usersRepository, 'findOne').mockResolvedValue(null);
-//       const payload = { username: 'test' };
+      const result = await strategy.validate({
+        username: 'test',
+        role: 'user',
+      });
+      expect(result).toEqual(mockUser);
+    });
 
-//       await expect(jwtStrategy.validate(payload)).rejects.toThrow('User not found');
-//     });
-
-//     it('should return the user if found', async () => {
-//       const user = { username: 'test', role: 'user' };
-//       jest.spyOn(usersRepository, 'findOne').mockResolvedValue(user);
-//       const payload = { username: 'test' };
-
-//       const result = await jwtStrategy.validate(payload);
-//       expect(result).toEqual(user);
-//     });
-//   });
-// });
+    it('throws UnauthorizedException if user not found', async () => {
+      (usersRepository.findOne as jest.Mock).mockResolvedValue(null);
+      await expect(
+        strategy.validate({ username: 'notfound', role: 'user' }),
+      ).rejects.toThrow(UnauthorizedException);
+    });
+  });
+});

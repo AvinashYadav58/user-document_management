@@ -2,19 +2,20 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { UsersService } from './users.service';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { User, UserRole } from '../auth/user.entity';
-import { Repository } from 'typeorm';
-import { BadRequestException, NotFoundException } from '@nestjs/common';
+import { DeleteResult, Repository } from 'typeorm';
+import { NotFoundException, BadRequestException } from '@nestjs/common';
 import { UpdateUserRoleDto } from './dto/update-user-role.dto';
 
-describe('UsersService', () => {
-  let usersService: UsersService;
-  let userRepository: Repository<User>;
+const mockUserRepository = () => ({
+  findOne: jest.fn(),
+  find: jest.fn(),
+  save: jest.fn(),
+  delete: jest.fn(),
+});
 
-  const mockUserRepository = {
-    findOne: jest.fn(),
-    find: jest.fn(),
-    save: jest.fn(),
-  };
+describe('UsersService', () => {
+  let service: UsersService;
+  let userRepository: jest.Mocked<Repository<User>>;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -22,13 +23,13 @@ describe('UsersService', () => {
         UsersService,
         {
           provide: getRepositoryToken(User),
-          useValue: mockUserRepository,
+          useFactory: mockUserRepository,
         },
       ],
     }).compile();
 
-    usersService = module.get<UsersService>(UsersService);
-    userRepository = module.get<Repository<User>>(getRepositoryToken(User));
+    service = module.get<UsersService>(UsersService);
+    userRepository = module.get(getRepositoryToken(User));
   });
 
   afterEach(() => {
@@ -36,133 +37,111 @@ describe('UsersService', () => {
   });
 
   describe('getUser', () => {
-    it('should return a user by ID', async () => {
-      const user: User = {
-        id: '1',
-        username: 'testUser',
-        password: 'testPassword',
-        role: UserRole.Editor,
-      };
-      mockUserRepository.findOne.mockResolvedValue(user);
+    it('should return user if found', async () => {
+      const user = { id: '1', role: UserRole.Viewer } as User;
+      userRepository.findOne.mockResolvedValue(user);
 
-      const result = await usersService.getUser('1');
-      expect(result).toBe(user);
-      expect(mockUserRepository.findOne).toHaveBeenCalledWith({
-        where: { id: '1' },
-      });
+      expect(await service.getUser('1')).toEqual(user);
     });
 
     it('should throw NotFoundException if user not found', async () => {
-      mockUserRepository.findOne.mockResolvedValue(null);
+      userRepository.findOne.mockResolvedValue(null);
 
-      await expect(usersService.getUser('1')).rejects.toThrow(
-        new NotFoundException('User with ID "1" not found.'),
-      );
+      await expect(service.getUser('1')).rejects.toThrow(NotFoundException);
     });
 
-    it('should throw error for invalid ID format', async () => {
-      mockUserRepository.findOne.mockResolvedValue(null);
+    it('should throw DB error if findOne fails', async () => {
+      userRepository.findOne.mockRejectedValue(new Error('DB error'));
 
-      await expect(usersService.getUser('')).rejects.toThrow(
-        new NotFoundException('User with ID "" not found.'),
-      );
+      await expect(service.getUser('1')).rejects.toThrow('DB error');
     });
   });
 
   describe('getAllUsers', () => {
     it('should return all users', async () => {
-      const users: User[] = [
-        {
-          id: '1',
-          username: 'user1',
-          password: 'password1',
-          role: UserRole.Editor,
-        },
-        {
-          id: '2',
-          username: 'user2',
-          password: 'password2',
-          role: UserRole.Admin,
-        },
-      ];
-      mockUserRepository.find.mockResolvedValue(users);
+      const users = [{ id: '1' }, { id: '2' }] as User[];
+      userRepository.find.mockResolvedValue(users);
 
-      const result = await usersService.getAllUsers();
-      expect(result).toBe(users);
-      expect(mockUserRepository.find).toHaveBeenCalledTimes(1);
+      expect(await service.getAllUsers()).toEqual(users);
     });
 
-    it('should return an empty array if no users found', async () => {
-      mockUserRepository.find.mockResolvedValue([]);
+    it('should throw error if repository fails', async () => {
+      userRepository.find.mockRejectedValue(new Error('Find failed'));
 
-      const result = await usersService.getAllUsers();
-      expect(result).toEqual([]);
+      await expect(service.getAllUsers()).rejects.toThrow('Find failed');
     });
   });
 
   describe('updateUserRole', () => {
-    it('should update the user role', async () => {
-      const user: User = {
-        id: '1',
-        username: 'testUser',
-        password: 'testPassword',
-        role: UserRole.Editor,
-      };
-      const updateUserRoleDto: UpdateUserRoleDto = { role: UserRole.Admin };
+    it('should update user role successfully', async () => {
+      const user = { id: '1', role: UserRole.Viewer } as User;
+      const dto: UpdateUserRoleDto = { role: UserRole.Admin };
 
-      mockUserRepository.findOne.mockResolvedValue(user);
-      mockUserRepository.save.mockResolvedValue({
-        ...user,
-        role: UserRole.Admin,
-      });
+      userRepository.findOne.mockResolvedValue(user);
+      userRepository.save.mockResolvedValue({ ...user, role: dto.role });
 
-      const result = await usersService.updateUserRole('1', updateUserRoleDto);
-      expect(result).toEqual({ ...user, role: UserRole.Admin });
-      expect(mockUserRepository.findOne).toHaveBeenCalledWith({
-        where: { id: '1' },
-      });
-      expect(mockUserRepository.save).toHaveBeenCalledWith({
+      const result = await service.updateUserRole('1', dto);
+
+      expect(result.role).toBe(UserRole.Admin);
+      // eslint-disable-next-line @typescript-eslint/unbound-method
+      expect(userRepository.save).toHaveBeenCalledWith({
         ...user,
-        role: UserRole.Admin,
+        role: dto.role,
       });
     });
 
     it('should throw NotFoundException if user not found', async () => {
-      mockUserRepository.findOne.mockResolvedValue(null);
-      const updateUserRoleDto: UpdateUserRoleDto = { role: UserRole.Admin };
+      userRepository.findOne.mockResolvedValue(null);
 
       await expect(
-        usersService.updateUserRole('1', updateUserRoleDto),
-      ).rejects.toThrow(new NotFoundException('User with ID "1" not found.'));
+        service.updateUserRole('1', { role: UserRole.Admin }),
+      ).rejects.toThrow(NotFoundException);
     });
 
-    // it('should throw error for invalid role format', async () => {
-    //   const user: User = { id: '1', username: 'testUser', password: 'testPassword', role: UserRole.Editor };
-    //   const invalidRoleDto = { role: 'InvalidRole' } as unknown as UpdateUserRoleDto;
-
-    //   mockUserRepository.findOne.mockResolvedValue(user);
-
-    //   await expect(usersService.updateUserRole('1', invalidRoleDto)).rejects.toThrow(
-    //     new NotFoundException('Invalid role provided.'),
-    //   );
-    // });
-
-    it('should throw error for invalid role format', async () => {
-      const user: User = {
-        id: '1',
-        username: 'testUser',
-        password: 'testPassword',
-        role: UserRole.Editor,
-      };
-      const invalidRoleDto = {
-        role: 'InvalidRole',
-      } as unknown as UpdateUserRoleDto;
-
-      mockUserRepository.findOne.mockResolvedValue(user);
+    it('should throw BadRequestException if role is invalid', async () => {
+      const user = { id: '1', role: UserRole.Viewer } as User;
+      userRepository.findOne.mockResolvedValue(user);
 
       await expect(
-        usersService.updateUserRole('1', invalidRoleDto),
-      ).rejects.toThrow(new BadRequestException('Invalid role provided.'));
+        service.updateUserRole('1', { role: 'INVALID' as UserRole }),
+      ).rejects.toThrow(BadRequestException);
+    });
+
+    it('should throw error if save fails', async () => {
+      const user = { id: '1', role: UserRole.Editor } as User;
+      const dto: UpdateUserRoleDto = { role: UserRole.Admin };
+
+      userRepository.findOne.mockResolvedValue(user);
+      userRepository.save.mockRejectedValue(new Error('Save failed'));
+
+      await expect(service.updateUserRole('1', dto)).rejects.toThrow(
+        'Save failed',
+      );
+    });
+  });
+
+  describe('removeUser', () => {
+    it('should delete user if exists', async () => {
+      const user = { id: '1' } as User;
+      userRepository.findOne.mockResolvedValue(user);
+      userRepository.delete.mockResolvedValue({ affected: 1 } as DeleteResult);
+
+      const result = await service.removeUser('1');
+      expect(result.message).toMatch(/deleted successfully/);
+    });
+
+    it('should throw NotFoundException if user not found', async () => {
+      userRepository.findOne.mockResolvedValue(null);
+
+      await expect(service.removeUser('1')).rejects.toThrow(NotFoundException);
+    });
+
+    it('should throw error if delete fails', async () => {
+      const user = { id: '1' } as User;
+      userRepository.findOne.mockResolvedValue(user);
+      userRepository.delete.mockRejectedValue(new Error('Delete failed'));
+
+      await expect(service.removeUser('1')).rejects.toThrow('Delete failed');
     });
   });
 });

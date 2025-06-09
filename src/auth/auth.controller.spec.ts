@@ -1,57 +1,39 @@
-// auth.controller.spec.ts
 import { Test, TestingModule } from '@nestjs/testing';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { AuthCredentialsDto } from './dto/auth-credentials.dto';
 
 describe('AuthController', () => {
-  let authController: AuthController;
-  let authService: AuthService;
+  let controller: AuthController;
+  let service: AuthService;
+
+  const mockAuthService = {
+    signup: jest.fn(),
+    signin: jest.fn(),
+  };
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [AuthController],
-      providers: [
-        {
-          provide: AuthService,
-          useValue: {
-            signup: jest.fn(() => () => {}),
-            signin: jest.fn(() =>
-              Promise.resolve({ accessToken: 'testToken' }),
-            ),
-          },
-        },
-      ],
+      providers: [{ provide: AuthService, useValue: mockAuthService }],
     }).compile();
 
-    authController = module.get<AuthController>(AuthController);
-    authService = module.get<AuthService>(AuthService);
+    controller = module.get<AuthController>(AuthController);
+    service = module.get<AuthService>(AuthService);
   });
 
-  it('should be defined', () => {
-    expect(authController).toBeDefined();
+  it('should call signup on authService', async () => {
+    const dto: AuthCredentialsDto = { username: 'user', password: '123' };
+    await controller.signUp(dto);
+    // eslint-disable-next-line @typescript-eslint/unbound-method
+    expect(service.signup).toHaveBeenCalledWith(dto);
   });
 
-  describe('signUp', () => {
-    it('should call AuthService.signup with correct params', async () => {
-      const authCredentialsDto: AuthCredentialsDto = {
-        username: 'test',
-        password: 'test123',
-      };
-      await authController.signUp(authCredentialsDto);
-      // eslint-disable-next-line @typescript-eslint/unbound-method
-      expect(authService.signup).toHaveBeenCalledWith(authCredentialsDto);
-    });
-  });
-
-  describe('signIn', () => {
-    it('should return an access token', async () => {
-      const authCredentialsDto: AuthCredentialsDto = {
-        username: 'test',
-        password: 'test123',
-      };
-      const result = await authController.signIn(authCredentialsDto);
-      expect(result).toEqual({ accessToken: 'testToken' });
-    });
+  it('should call signin and return token', async () => {
+    const dto: AuthCredentialsDto = { username: 'user', password: '123' };
+    const token = { accessToken: 'jwt' };
+    mockAuthService.signin.mockResolvedValue(token);
+    const result = await controller.signIn(dto);
+    expect(result).toEqual(token);
   });
 });

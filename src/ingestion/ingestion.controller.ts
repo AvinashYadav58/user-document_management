@@ -41,13 +41,17 @@ export class IngestionController {
 
   @Patch(':id/complete')
   @Roles(UserRole.Admin)
-  completeIngestion(@Param('id') ingestionId: string): Promise<void> {
+  completeIngestion(
+    @Param('id') ingestionId: string,
+  ): Promise<{ message: string }> {
     return this.ingestionService.completeIngestion(ingestionId);
   }
 
   @Patch(':id/fail')
   @Roles(UserRole.Admin)
-  failIngestion(@Param('id') ingestionId: string): Promise<void> {
+  failIngestion(
+    @Param('id') ingestionId: string,
+  ): Promise<{ message: string }> {
     return this.ingestionService.failIngestion(ingestionId);
   }
 }

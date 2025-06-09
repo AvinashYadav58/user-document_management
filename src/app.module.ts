@@ -8,7 +8,7 @@ import { Document } from './documents/document.entity';
 import { User } from './auth/user.entity';
 import { APP_GUARD } from '@nestjs/core';
 import { RolesGuard } from './auth/roles.gaurd';
-import { JwtAuthGuard } from './auth/jwtauth.gaurd';
+import { JwtAuthGuard } from './auth/jwtauth.guard';
 import { Ingestion } from './ingestion/ingestion.entity';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { configValidationSchema } from './config.schema';

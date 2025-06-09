@@ -57,7 +57,7 @@ export class DocumentsController {
 
   @Delete(':id')
   @Roles(UserRole.Admin)
-  removeDocument(@Param('id') id: string) {
+  removeDocument(@Param('id') id: string): Promise<{ message: string }> {
     return this.documentsService.remove(id);
   }
 }
