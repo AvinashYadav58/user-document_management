@@ -4,12 +4,9 @@ import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
 import { DocumentsModule } from './documents/documents.module';
 import { IngestionModule } from './ingestion/ingestion.module';
-import { Document } from './documents/document.entity';
-import { User } from './auth/user.entity';
 import { APP_GUARD } from '@nestjs/core';
 import { RolesGuard } from './auth/roles.gaurd';
 import { JwtAuthGuard } from './auth/jwtauth.guard';
-import { Ingestion } from './ingestion/ingestion.entity';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { configValidationSchema } from './config.schema';
 
@@ -32,7 +29,9 @@ import { configValidationSchema } from './config.schema';
           username: configService.get<string>('DB_USERNAME'),
           password: configService.get<string>('DB_PASSWORD'),
           database: configService.get<string>('DB_DATABASE'),
-          entities: [Document, User, Ingestion],
+          // Enable SSL for production
+          // For local development, you might want to disable SSL
+          // depending on your database setup.
           ssl: {
             rejectUnauthorized: false,
           },
