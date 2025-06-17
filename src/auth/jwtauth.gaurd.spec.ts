@@ -3,7 +3,6 @@ import { JwtAuthGuard } from './jwtauth.guard';
 import { Reflector } from '@nestjs/core';
 import { ExecutionContext } from '@nestjs/common';
 import { of } from 'rxjs';
-// import { AuthGuard } from '@nestjs/passport';
 
 describe('JwtAuthGuard', () => {
   let guard: JwtAuthGuard;
