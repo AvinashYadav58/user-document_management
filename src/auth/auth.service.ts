@@ -12,8 +12,8 @@ import { JwtPayload } from './jwt-payload.interface';
 @Injectable()
 export class AuthService {
   constructor(
-    private usersRepository: UsersRepository,
-    private jwtService: JwtService,
+    private readonly usersRepository: UsersRepository,
+    private readonly jwtService: JwtService,
   ) {}
 
   async signup(authCredentialsDto: AuthCredentialsDto): Promise<void> {
