@@ -11,12 +11,12 @@ import { ConfigService } from '@nestjs/config';
 export class JwtStrategy extends PassportStrategy(Strategy) {
   constructor(
     @InjectRepository(UsersRepository)
-    private userRepository: UsersRepository,
-    private configService: ConfigService,
+    private readonly userRepository: UsersRepository,
+    private readonly configService: ConfigService,
   ) {
     super({
       secretOrKey:
-        configService.get<string>('JWT_SECRET') || 'secure_default_secret',
+        configService.get<string>('JWT_SECRET') ?? 'secure_default_secret',
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
     });
   }
