@@ -23,7 +23,7 @@ import { configValidationSchema } from './config.schema';
         return {
           type: 'postgres',
           autoLoadEntities: true,
-          synchronize: true,
+          synchronize: process.env.STAGE !== 'prod',
           host: configService.get<string>('DB_HOST'),
           port: configService.get<number>('DB_PORT'),
           username: configService.get<string>('DB_USERNAME'),
